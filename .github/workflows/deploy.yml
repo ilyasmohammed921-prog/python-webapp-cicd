@@ -11,61 +11,128 @@ jobs:
 
     steps:
 
+      # ==========================================
+      # 1. Checkout GitHub Repository
+      # ==========================================
       - name: Checkout repository
         uses: actions/checkout@v4
 
+
+      # ==========================================
+      # 2. Login to Docker Hub
+      # ==========================================
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PWD }}
 
+
+      # ==========================================
+      # 3. Build Docker Image
+      # ==========================================
       - name: Build Docker image
         run: |
           docker build \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/python-webapp:latest .
 
+
+      # ==========================================
+      # 4. Push Image to Docker Hub
+      # ==========================================
       - name: Push Docker image
         run: |
           docker push \
             ${{ secrets.DOCKERHUB_USERNAME }}/python-webapp:latest
 
-      - name: Deploy to EC2
+
+      # ==========================================
+      # 5. Setup SSH
+      # ==========================================
+      - name: Setup SSH
         env:
-          EC2_HOST: ${{ secrets.EC2_HOST }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          EC2_HOST: ${{ secrets.EC2_HOST }}
         run: |
           mkdir -p ~/.ssh
 
           echo "$EC2_SSH_KEY" > ~/.ssh/ec2_key.pem
+
           chmod 600 ~/.ssh/ec2_key.pem
 
           ssh-keyscan -H "$EC2_HOST" >> ~/.ssh/known_hosts
 
+
+      # ==========================================
+      # 6. Deploy Application to EC2
+      # ==========================================
+      - name: Deploy to EC2
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
           ssh -i ~/.ssh/ec2_key.pem \
             ec2-user@"$EC2_HOST" << EOF
 
             set -e
 
-            echo "Pulling latest image..."
-            docker pull "$DOCKERHUB_USERNAME/python-webapp:latest"
+            echo "======================================"
+            echo "Starting EC2 Deployment"
+            echo "======================================"
 
+            echo ""
+            echo "Checking Docker..."
+            sudo docker --version
+
+            echo ""
+            echo "Pulling latest image from Docker Hub..."
+            sudo docker pull "$DOCKERHUB_USERNAME/python-webapp:latest"
+
+            echo ""
             echo "Stopping old container..."
-            docker stop python-webapp || true
+            sudo docker stop python-webapp || true
 
+            echo ""
             echo "Removing old container..."
-            docker rm python-webapp || true
+            sudo docker rm python-webapp || true
 
+            echo ""
             echo "Starting new container..."
-            docker run -d \
+            sudo docker run -d \
               --name python-webapp \
               -p 80:5000 \
               --restart unless-stopped \
               "$DOCKERHUB_USERNAME/python-webapp:latest"
 
-            echo "Deployment completed."
+            echo ""
+            echo "Waiting for container to start..."
+            sleep 5
 
-            docker ps
+            echo ""
+            echo "======================================"
+            echo "Container Status"
+            echo "======================================"
+
+            sudo docker ps
+
+            echo ""
+            echo "======================================"
+            echo "Application Test"
+            echo "======================================"
+
+            curl -f http://localhost/health
+
+            echo ""
+            echo ""
+            echo "======================================"
+            echo "Cleaning unused Docker images"
+            echo "======================================"
+
+            sudo docker image prune -f
+
+            echo ""
+            echo "======================================"
+            echo "DEPLOYMENT SUCCESSFUL"
+            echo "======================================"
 
           EOF
