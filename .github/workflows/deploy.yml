@@ -1,4 +1,3 @@
-```yaml
 name: Build and Deploy Python App
 
 on:
@@ -70,4 +69,3 @@ jobs:
             docker ps
 
           EOF
-```
