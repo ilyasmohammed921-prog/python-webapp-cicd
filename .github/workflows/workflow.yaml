@@ -1,4 +1,3 @@
-```yaml
 name: CI/CD - Docker Hub + Kubernetes
 
 on:
@@ -116,4 +115,3 @@ jobs:
           kubectl get deployment python-webapp
           kubectl get pods -o wide
           kubectl get svc
-```
