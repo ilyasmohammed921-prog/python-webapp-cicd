@@ -1,62 +1,295 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Python Web App</title>
+    <title>QuickRide - Bike Taxi</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f7f6;
+            color: #222;
+        }
+
+        header {
+            background: #111;
+            color: white;
+            padding: 18px 8%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .logo span {
+            color: #00d084;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 15px;
+        }
+
+        nav a:hover {
+            color: #00d084;
+        }
+
+        .hero {
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 50px 8%;
+            background: linear-gradient(135deg, #111, #202b27);
+            color: white;
+        }
+
+        .hero-content {
+            max-width: 550px;
+        }
+
+        .hero-content h1 {
+            font-size: 55px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .hero-content h1 span {
+            color: #00d084;
+        }
+
+        .hero-content p {
+            font-size: 19px;
+            color: #ccc;
+            margin-bottom: 30px;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            padding: 14px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .primary {
+            background: #00d084;
+            color: #111;
+        }
+
+        .secondary {
+            border: 1px solid #00d084;
+            color: #00d084;
+        }
+
+        .bike {
+            font-size: 170px;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+        }
+
+        .booking {
+            background: white;
+            width: 85%;
+            max-width: 1000px;
+            margin: -50px auto 50px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .booking h2 {
+            margin-bottom: 20px;
+        }
+
+        .form {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .form input,
+        .form select {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+
+        .ride-btn {
+            background: #00d084;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .ride-btn:hover {
+            background: #00b871;
+        }
+
+        .features {
+            padding: 30px 8% 70px;
+            text-align: center;
+        }
+
+        .features h2 {
+            font-size: 35px;
+            margin-bottom: 35px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+
+        .card-icon {
+            font-size: 45px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        footer {
+            background: #111;
+            color: #aaa;
+            text-align: center;
+            padding: 25px;
+        }
+
+        footer span {
+            color: #00d084;
+        }
+
+        @media (max-width: 768px) {
+
+            header {
+                padding: 18px 5%;
+            }
+
+            nav {
+                display: none;
+            }
+
+            .hero {
+                flex-direction: column;
+                text-align: center;
+                padding: 60px 5%;
+            }
+
+            .hero-content h1 {
+                font-size: 40px;
+            }
+
+            .buttons {
+                justify-content: center;
+            }
+
+            .bike {
+                font-size: 100px;
+                margin-top: 30px;
+            }
+
+            .form {
+                grid-template-columns: 1fr;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 
 <body>
 
-    <div class="container">
-        <div class="card">
-            <h1>Python Web App</h1>
+    <header>
+        <div class="logo">Quick<span>Ride</span> 🏍️</div>
 
-            <p class="subtitle">
-                Application deployed successfully using Docker and GitHub Actions.
+        <nav>
+            <a href="#">Home</a>
+            <a href="#">Book Ride</a>
+            <a href="#">Offers</a>
+            <a href="#">Contact</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+
+        <div class="hero-content">
+            <h1>Fast Rides.<br><span>Less Traffic.</span></h1>
+
+            <p>
+                Book a bike taxi and reach your destination
+                quickly, safely and affordably.
             </p>
 
-            <div class="status">
-                <span class="status-dot"></span>
-                Application is running
+            <div class="buttons">
+                <a href="#" class="btn primary">Book a Bike</a>
+                <a href="#" class="btn secondary">Become a Rider</a>
             </div>
-
-            <div class="info">
-                <p><strong>Server:</strong> 13.223.91.250</p>
-                <p><strong>Port:</strong> 8080</p>
-                <p><strong>Deployment:</strong> CI/CD</p>
-            </div>
-
-            <button onclick="checkHealth()">
-                Check Application
-            </button>
-
-            <p id="result"></p>
         </div>
-    </div>
 
-    <script>
-        async function checkHealth() {
-            const result = document.getElementById("result");
+        <div class="bike">
+            🏍️
+        </div>
 
-            try {
-                const response = await fetch("/health");
+    </section>
 
-                if (response.ok) {
-                    result.textContent = "✓ Application is healthy";
-                    result.className = "success";
-                } else {
-                    result.textContent = "✗ Application health check failed";
-                    result.className = "error";
-                }
-            } catch (error) {
-                result.textContent = "✗ Unable to connect to application";
-                result.className = "error";
-            }
-        }
-    </script>
+    <section class="booking">
 
-</body>
-</html>
+        <h2>Book Your Bike Taxi 🚀</h2>
+
+        <div class="form">
+
+            <input
+                type="text"
+                placeholder="📍 Pickup location"
+            >
+
+            <input
+                type="text"
+                placeholder="🏁 Enter destination"
+            >
+
+            <select>
+                <option>Select Bike</option>
+                <option>Bike Taxi</option>
+                <option>Premium Bike</option>
+                <option>Electric Bike</optio
+```
