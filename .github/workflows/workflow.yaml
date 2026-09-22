@@ -1,64 +1,55 @@
-name: CI/CD - Docker Hub + Kubernetes
+name: CI/CD - Docker Hub + Killercoda Kubernetes
 
 on:
   push:
     branches:
       - main
-
   workflow_dispatch:
 
 jobs:
   build-push-deploy:
-
     runs-on: ubuntu-latest
 
     steps:
 
-      # ==========================================
-      # 1. Checkout GitHub Repository
-      # ==========================================
+      # 1. Checkout source code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-
-      # ==========================================
       # 2. Login to Docker Hub
-      # ==========================================
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PWD }}
 
-
-      # ==========================================
-      # 3. Build Docker Image
-      # ==========================================
+      # 3. Build Docker image
       - name: Build Docker image
         run: |
           docker build \
             -t ilyasdevops/python-webapp:${{ github.sha }} \
             -t ilyasdevops/python-webapp:latest .
 
-
-      # ==========================================
-      # 4. Push Docker Image to Docker Hub
-      # ==========================================
+      # 4. Push Docker image to Docker Hub
       - name: Push Docker image
         run: |
           docker push ilyasdevops/python-webapp:${{ github.sha }}
           docker push ilyasdevops/python-webapp:latest
 
+      # 5. Install kubectl
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: latest
 
-      # ==========================================
-      # 5. Configure Killercoda Kubernetes
-      # ==========================================
+      # 6. Configure Killercoda Kubernetes
       - name: Configure Kubernetes
         shell: bash
         run: |
           mkdir -p "$HOME/.kube"
 
-          printf '%s' '${{ secrets.KUBE_CONFIG }}' > "$HOME/.kube/config"
+          printf '%s' "${{ secrets.KUBE_CONFIG_B64 }}" \
+            | base64 --decode > "$HOME/.kube/config"
 
           chmod 600 "$HOME/.kube/config"
 
@@ -66,52 +57,43 @@ jobs:
 
           echo "Kubernetes configuration created"
 
-
-      # ==========================================
-      # 6. Check Kubernetes Configuration
-      # ==========================================
-      - name: Check Kubernetes configuration
+      # 7. Validate kubeconfig
+      - name: Validate Kubernetes configuration
         shell: bash
         run: |
           kubectl config get-contexts
           kubectl config current-context
 
-
-      # ==========================================
-      # 7. Test Kubernetes Connection
-      # ==========================================
-      - name: Check Kubernetes connection
+      # 8. Check Kubernetes cluster
+      - name: Check Kubernetes cluster
         shell: bash
         run: |
           kubectl cluster-info
           kubectl get nodes
 
-
-      # ==========================================
-      # 8. Update Kubernetes Deployment
-      # ==========================================
+      # 9. Deploy new Docker image
       - name: Deploy application
         shell: bash
         run: |
           kubectl set image deployment/python-webapp \
             python-webapp=ilyasdevops/python-webapp:${{ github.sha }}
 
-
-      # ==========================================
-      # 9. Wait for Rolling Update
-      # ==========================================
+      # 10. Wait for rolling update
       - name: Wait for deployment
         shell: bash
         run: |
-          kubectl rollout status deployment/python-webapp
+          kubectl rollout status deployment/python-webapp \
+            --timeout=180s
 
-
-      # ==========================================
-      # 10. Verify Pods
-      # ==========================================
-      - name: Verify Kubernetes deployment
+      # 11. Verify deployment
+      - name: Verify deployment
         shell: bash
         run: |
+          echo "===== DEPLOYMENT ====="
           kubectl get deployment python-webapp
+
+          echo "===== PODS ====="
           kubectl get pods -o wide
-          kubectl get svc
+
+          echo "===== SERVICE ====="
+          kubectl get svc python-webapp
